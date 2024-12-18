@@ -11,6 +11,6 @@ public class ExecutorConfig {
 
     @Bean
     public ExecutorService executorService() {
-        return Executors.newFixedThreadPool(10); // İhtiyacımıza göre thread sayıs
+        return Executors.newFixedThreadPool(10); // İhtiyacınıza göre thread sayısını ayarlayın
     }
 }

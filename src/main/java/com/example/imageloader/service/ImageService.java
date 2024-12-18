@@ -27,7 +27,7 @@ public class ImageService {
 
     private final ExecutorService executorService;
 
-    public ImageService(ExecutorService executorService) { // yappıcı metot ile thread havuzu
+    public ImageService(ExecutorService executorService) {
         this.executorService = executorService;
     }
 
@@ -44,13 +44,21 @@ public class ImageService {
         try {
             response = mapper.readValue(jsonResponse, PexelsResponse.class);
         } catch (Exception e) {
-            throw new RuntimeException("hata", e);
+            throw new RuntimeException("Failed to parse JSON response", e);
         }
-        return Arrays.asList(response.getPhotos());
+        List<Image> images = Arrays.asList(response.getPhotos());
+        for (Image image : images) {
+            try {
+                Thread.sleep(2000); // 2 saniye bekle
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("Thread interrupted", e);
+            }
+        }
+        return images;
     }
-    
-    
- // Asenkron
+
+    // Asenkron
     @Async
     public CompletableFuture<List<Image>> loadImagesAsync(String query, int page, int perPage, String orientation, String size, String color, String locale) {
         return CompletableFuture.supplyAsync(() -> {
@@ -63,12 +71,21 @@ public class ImageService {
             ObjectMapper mapper = new ObjectMapper();
             PexelsResponse response;
             try {
-                response = mapper.readValue(jsonResponse, PexelsResponse.class); // json cevabı pexelresponse sınıfına çevir 
+                response = mapper.readValue(jsonResponse, PexelsResponse.class);
             } catch (Exception e) {
-                throw new RuntimeException("hata", e);
+                throw new RuntimeException("Failed to parse JSON response", e);
             }
-            return Arrays.asList(response.getPhotos()); // sonucu array olarak dön 
-        }, executorService); //iş executorService tarafından yönetilen iş parçacığı havuzunda çalıştırılır
+            List<Image> images = Arrays.asList(response.getPhotos());
+            images.parallelStream().forEach(image -> {
+                try {
+                    Thread.sleep(2000); // 2 saniye bekle
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Thread interrupted", e);
+                }
+            });
+            return images;
+        }, executorService);
     }
 
     private String buildUrl(String query, int page, int perPage, String orientation, String size, String color, String locale) {
@@ -80,11 +97,10 @@ public class ImageService {
         return url.toString();
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true) // json formattan java nesnlerine çevir
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class PexelsResponse {
         private Image[] photos;
 
-        // Getter ve Setter
         public Image[] getPhotos() {
             return photos;
         }

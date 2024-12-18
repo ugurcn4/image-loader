@@ -43,7 +43,6 @@ public class ImageController {
     }
 
     private boolean isComplexQuery(String orientation, String size, String color, String locale) {
-        // Filtreleme seçeneklerinin varlığına göre sorgunun karmaşıklığını belirleme
         return (orientation != null && !orientation.isEmpty()) ||
                (size != null && !size.isEmpty()) ||
                (color != null && !color.isEmpty()) ||

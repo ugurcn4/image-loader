@@ -97,11 +97,16 @@ document.addEventListener('DOMContentLoaded', () => {
             .then((data) => {
                 hideLoading();
                 imagesWrapper.innerHTML = ''; // Önceki sonuçları temizle
-                data.forEach(image => {
-                    addImagesToUI(image.src.original); // Daha yüksek çözünürlüklü görsel kullan
+                const isComplex = isComplexQuery(filters);
+                data.forEach((image, index) => {
+                    setTimeout(() => {
+                        addImagesToUI(image.src.large); // Daha yüksek çözünürlüklü görsel kullan
+                        if (index === data.length - 1) {
+                            const endTime = performance.now();
+                            showInfo(endTime - startTime, isComplex ? 'Asenkron' : 'Senkron');
+                        }
+                    }, isComplex ? 0 : index * 2000); // Asenkron ise hemen, senkron ise sırayla 2 saniye arayla
                 });
-                const endTime = performance.now();
-                showInfo(endTime - startTime, isComplexQuery(filters) ? 'Asenkron' : 'Senkron');
             })
             .catch((error) => {
                 hideLoading();
